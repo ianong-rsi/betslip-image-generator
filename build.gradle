@@ -13,6 +13,10 @@ dependencies {
     implementation 'io.quarkus:quarkus-amazon-lambda'
     implementation 'io.quarkus:quarkus-arc'
 
+    implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1000')
+    implementation 'com.amazonaws:aws-java-sdk-s3'
+    implementation 'software.amazon.lambda:powertools-validation:1.12.2'
+
     implementation 'org.apache.httpcomponents:httpcore'
 
     compileOnly 'org.projectlombok:lombok:1.18.24'
