@@ -1,4 +1,4 @@
-package com.rush.cloud.betslip.lambda;
+package com.rush.cloud.betslip;
 
 import io.quarkus.test.junit.NativeImageTest;
 
