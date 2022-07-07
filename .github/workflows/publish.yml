@@ -19,7 +19,7 @@ jobs:
       - name: Build native executable
         run: ./gradlew build -Dquarkus.package.type=native
       - name: Update AWS lambda with native executable
-        run: bash build/manage.sh native create
+        run: bash build/manage.sh update
         env:
           LAMBDA_ROLE_ARN: arn:aws:iam::256683732175:role/lambda-ex
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
