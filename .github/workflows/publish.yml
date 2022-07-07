@@ -4,7 +4,7 @@ on:
     branches:
       - main
 jobs:
-  build-linux:
+  build-native-and-update-lambda:
     runs-on: ubuntu-latest
     env:
       OS: linux
