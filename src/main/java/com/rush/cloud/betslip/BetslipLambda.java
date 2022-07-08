@@ -1,4 +1,4 @@
-`package com.rush.cloud.betslip;
+package com.rush.cloud.betslip;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -140,4 +140,3 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
                 .build();
     }
 }
-`
