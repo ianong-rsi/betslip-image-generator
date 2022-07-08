@@ -17,7 +17,7 @@ jobs:
       - name: Install native-image
         run: gu install native-image
       - name: Build native executable
-        run: ./gradlew build -Dquarkus.package.type=native
+        run: ./gradlew build -Dquarkus.package.type=native -Dquarkus.native.container-build=true
       - name: Update AWS lambda with native executable
         run: bash build/manage.sh native update
 #        run: sam deploy -t build/sam.native.yaml -g
