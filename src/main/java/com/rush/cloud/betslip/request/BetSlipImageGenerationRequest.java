@@ -6,6 +6,7 @@ import com.rush.cloud.betslip.common.Badge;
 import com.rush.cloud.betslip.common.Platform;
 import com.rush.cloud.betslip.common.PlayType;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@RegisterForReflection
 public class BetSlipImageGenerationRequest {
 
     private Platform platform;
