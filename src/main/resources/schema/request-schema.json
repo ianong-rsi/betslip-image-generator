@@ -1,0 +1,108 @@
+{
+  "title": "BetSlipImageGenerationRequest",
+  "description": "A Betslip Image Generation Request",
+  "type": "object",
+  "required": [ "platform", "playType", "header", "selections", "footer" ],
+  "properties": {
+    "platform": {
+      "description": "The platform where the bet was placed",
+      "type": "string",
+      "enum": ["BETRIVERS", "SUGARHOUSE"]
+    },
+    "playType": {
+      "description": "The bet play type",
+      "type": "string",
+      "enum": [ "PARLAY", "SGP", "MULTIPLE_SGP", "TRIXIE", "YANKEE", "CANADIAN", "HEINZ", "SUPER_HEINZ", "TEASER", "SPECIAL" ]
+    },
+    "badges": {
+      "description": "The badges associated to this bet",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [ "FREE_BET", "ODDS_BOOST", "PROFIT_BOOST", "SPECIAL", "TEASER" ]
+      },
+      "uniqueItems": true
+    },
+    "header": {
+      "type": "object",
+      "required": [ "myBetsText" ],
+      "properties": {
+        "myBetsText": {
+          "type": "string"
+        },
+        "betTitle": {
+          "type": "string"
+        },
+        "totalOdds": {
+          "type": "string"
+        },
+        "descriptionLeft": {
+          "type": "string"
+        },
+        "descriptionRight": {
+          "type": "string"
+        },
+        "lineDescription": {
+          "type": "string"
+        }
+      }
+    },
+    "selections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "label", "odds", "bettingMarketType" ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "odds": {
+            "type": "string"
+          },
+          "oddsBoosted": {
+            "type": "string"
+          },
+          "bettingMarketType": {
+            "type": "string"
+          },
+          "eventName": {
+            "type": "string"
+          },
+          "eventStartDate": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "footer": {
+      "type": "object",
+      "required": [ "totalWagerText", "totalWagerAmount", "potentialPayoutText", "potentialPayoutAmount", "gamblingProblemLine1", "gamblingProblemLine2", "betDateTime" ],
+      "properties": {
+        "totalWagerText": {
+          "type": "string"
+        },
+        "totalWagerAmount": {
+          "type": "string"
+        },
+        "potentialPayoutText": {
+          "type": "string"
+        },
+        "potentialPayoutAmount": {
+          "type": "string"
+        },
+        "potentialPayoutAmountBoosted": {
+          "type": "string"
+        },
+        "gamblingProblemLine1": {
+          "type": "string"
+        },
+        "gamblingProblemLine2": {
+          "type": "string"
+        },
+        "betDateTime": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

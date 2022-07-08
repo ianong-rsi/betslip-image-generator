@@ -1,10 +1,8 @@
 package com.rush.cloud.betslip;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -17,29 +15,29 @@ import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rush.cloud.betslip.builder.BetTypeBuilderFactory;
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
 
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.lambda.powertools.validation.ValidationException;
 import software.amazon.lambda.powertools.validation.ValidationUtils;
 
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+
+    private static final S3Client S3_CLIENT = S3Client.builder().region(Region.US_WEST_2).build();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final AmazonS3 S3_CLIENT = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
     private static final BetTypeBuilderFactory IMAGE_BUILDER_FACTORY = new BetTypeBuilderFactory();
     private static final String BUCKET_ENV_VAR = "BETSLIP_BUCKET";
 
@@ -47,7 +45,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
         try {
             // Validate request body against json schema
-            ValidationUtils.validate(input.getBody(), "classpath:/schema/request-schema.json");
+//            ValidationUtils.validate(input.getBody(), "classpath:/schema/request-schema.json");
             BetSlipImageGenerationRequest request = OBJECT_MAPPER.readValue(input.getBody(), BetSlipImageGenerationRequest.class);
 
             BufferedImage image = IMAGE_BUILDER_FACTORY
@@ -82,10 +80,8 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
                 ex.printStackTrace();
                 return handleError(context.getAwsRequestId(), HttpStatus.SC_BAD_REQUEST, e, e.getMessage());
             }
-        } catch (AmazonServiceException e) {
-            String msg = e.getErrorMessage();
-            return handleError(context.getAwsRequestId(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e, msg);
         } catch (Exception e) {
+            e.printStackTrace();
             String msg = e.getMessage();
             return handleError(context.getAwsRequestId(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e, msg);
         }
@@ -96,19 +92,23 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ImageIO.write(image, "png", os);
         byte[] byteArray = os.toByteArray();
-        InputStream is = new ByteArrayInputStream(byteArray);
-
-        String key = UUID.randomUUID() + ".png";
-        ObjectMetadata ob = new ObjectMetadata();
-        ob.setContentType(ContentType.IMAGE_PNG.getMimeType());
-        ob.setContentLength(byteArray.length);
 
         String bucketName = System.getenv(BUCKET_ENV_VAR);
-        PutObjectRequest putObjReq = new PutObjectRequest(bucketName, key, is, ob)
-                .withCannedAcl(CannedAccessControlList.PublicRead);
-        S3_CLIENT.putObject(putObjReq);
+        String key = UUID.randomUUID() + ".png";
 
-        return S3_CLIENT.getUrl(bucketName, key);
+        S3_CLIENT.putObject(PutObjectRequest.builder()
+                             .bucket(bucketName)
+                             .key(key)
+                             .contentLength((long) byteArray.length)
+                             .contentType(ContentType.IMAGE_PNG.getMimeType())
+                             .acl(ObjectCannedACL.PUBLIC_READ)
+                             .build(),
+                            RequestBody.fromBytes(byteArray));
+
+        return S3_CLIENT.utilities().getUrl(GetUrlRequest.builder()
+                                             .bucket(bucketName)
+                                             .key(key)
+                                             .build());
     }
 
     private APIGatewayV2HTTPResponse handleError(String requestId, int statusCode, Exception e, String ... messages) {
