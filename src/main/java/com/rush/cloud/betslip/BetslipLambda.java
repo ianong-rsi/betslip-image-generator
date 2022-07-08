@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.lambda.powertools.validation.ValidationException;
+import software.amazon.lambda.powertools.validation.ValidationUtils;
 
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
@@ -50,7 +51,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
         try {
             // Validate request body against json schema
-//            ValidationUtils.validate(input.getBody(), "classpath:/schema/request-schema.json");
+            ValidationUtils.validate(input.getBody(), "classpath:/schema/request-schema.json");
             BetSlipImageGenerationRequest request = objectMapper.readValue(input.getBody(), BetSlipImageGenerationRequest.class);
 
             BufferedImage image = imgBuilderFactory
