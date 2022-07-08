@@ -16,7 +16,6 @@ dependencies {
 //    implementation 'software.amazon.awssdk:s3'
 
     implementation 'io.quarkus:quarkus-amazon-lambda'
-    implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-awt'
     implementation 'io.quarkus:quarkus-apache-httpclient'
 
