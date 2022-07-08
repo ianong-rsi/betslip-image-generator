@@ -25,6 +25,7 @@ public class BetSlipImageGenerationRequest {
     private FooterContent footer;
 
     @Data
+    @RegisterForReflection
     public static class Selection {
 
         private String label;  // $.outcomes.label
@@ -36,6 +37,7 @@ public class BetSlipImageGenerationRequest {
     }
 
     @Data
+    @RegisterForReflection
     public static class HeaderContent {
 
         private String myBetsText;  // static
@@ -47,6 +49,7 @@ public class BetSlipImageGenerationRequest {
     }
 
     @Data
+    @RegisterForReflection
     public static class FooterContent {
         private String totalWagerText;  // static
         private String totalWagerAmount;  // sum of $.bets.stake
