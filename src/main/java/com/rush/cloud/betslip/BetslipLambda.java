@@ -25,18 +25,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rush.cloud.betslip.builder.BetTypeBuilderFactory;
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
 
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetUrlRequest;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+//import software.amazon.awssdk.core.sync.RequestBody;
+//import software.amazon.awssdk.regions.Region;
+//import software.amazon.awssdk.services.s3.S3Client;
+//import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+//import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+//import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.lambda.powertools.validation.ValidationException;
-import software.amazon.lambda.powertools.validation.ValidationUtils;
+//import software.amazon.lambda.powertools.validation.ValidationUtils;
 
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
-    private static final S3Client S3_CLIENT = S3Client.builder().region(Region.US_WEST_2).build();
+//    private static final S3Client S3_CLIENT = S3Client.builder().region(Region.US_WEST_2).build();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final BetTypeBuilderFactory IMAGE_BUILDER_FACTORY = new BetTypeBuilderFactory();
     private static final String BUCKET_ENV_VAR = "BETSLIP_BUCKET";
@@ -96,19 +96,21 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
         String bucketName = System.getenv(BUCKET_ENV_VAR);
         String key = UUID.randomUUID() + ".png";
 
-        S3_CLIENT.putObject(PutObjectRequest.builder()
-                             .bucket(bucketName)
-                             .key(key)
-                             .contentLength((long) byteArray.length)
-                             .contentType(ContentType.IMAGE_PNG.getMimeType())
-                             .acl(ObjectCannedACL.PUBLIC_READ)
-                             .build(),
-                            RequestBody.fromBytes(byteArray));
+        return new URL("https://www.facebook.com");
 
-        return S3_CLIENT.utilities().getUrl(GetUrlRequest.builder()
-                                             .bucket(bucketName)
-                                             .key(key)
-                                             .build());
+//        S3_CLIENT.putObject(PutObjectRequest.builder()
+//                             .bucket(bucketName)
+//                             .key(key)
+//                             .contentLength((long) byteArray.length)
+//                             .contentType(ContentType.IMAGE_PNG.getMimeType())
+//                             .acl(ObjectCannedACL.PUBLIC_READ)
+//                             .build(),
+//                            RequestBody.fromBytes(byteArray));
+//
+//        return S3_CLIENT.utilities().getUrl(GetUrlRequest.builder()
+//                                             .bucket(bucketName)
+//                                             .key(key)
+//                                             .build());
     }
 
     private APIGatewayV2HTTPResponse handleError(String requestId, int statusCode, Exception e, String ... messages) {
