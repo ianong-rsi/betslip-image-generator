@@ -25,27 +25,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rush.cloud.betslip.builder.BetTypeBuilderFactory;
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
 
-//import software.amazon.awssdk.core.sync.RequestBody;
-//import software.amazon.awssdk.regions.Region;
-//import software.amazon.awssdk.services.s3.S3Client;
-//import software.amazon.awssdk.services.s3.model.GetUrlRequest;
-//import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
-//import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.lambda.powertools.validation.ValidationException;
-//import software.amazon.lambda.powertools.validation.ValidationUtils;
 
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
     private final ObjectMapper objectMapper;
     private final BetTypeBuilderFactory imgBuilderFactory;
     private final String bucketEnvKey;
+    private final S3Client s3Client;
     public BetslipLambda() {
         objectMapper = new ObjectMapper();
         imgBuilderFactory = new BetTypeBuilderFactory();
         bucketEnvKey = "BETSLIP_BUCKET";
+        s3Client = S3Client.builder().region(Region.US_WEST_2).build();
     }
 
-//    private static final S3Client S3_CLIENT = S3Client.builder().region(Region.US_WEST_2).build();
     public APIGatewayV2HTTPResponse handleRequest(final APIGatewayV2HTTPEvent input, final Context context) {
 
         try {
@@ -61,7 +61,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
             String body = objectMapper.writeValueAsString(
                     Map.of(
-                            "url", "https://www.facebook.com",
+                            "url", url,
                             "requestId", context.getAwsRequestId()
                     )
             );
@@ -101,21 +101,19 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
         String bucketName = System.getenv(bucketEnvKey);
         String key = UUID.randomUUID() + ".png";
 
-        return null;
+        s3Client.putObject(PutObjectRequest.builder()
+                             .bucket(bucketName)
+                             .key(key)
+                             .contentLength((long) byteArray.length)
+                             .contentType(ContentType.IMAGE_PNG.getMimeType())
+                             .acl(ObjectCannedACL.PUBLIC_READ)
+                             .build(),
+                           RequestBody.fromBytes(byteArray));
 
-//        S3_CLIENT.putObject(PutObjectRequest.builder()
-//                             .bucket(bucketName)
-//                             .key(key)
-//                             .contentLength((long) byteArray.length)
-//                             .contentType(ContentType.IMAGE_PNG.getMimeType())
-//                             .acl(ObjectCannedACL.PUBLIC_READ)
-//                             .build(),
-//                            RequestBody.fromBytes(byteArray));
-//
-//        return S3_CLIENT.utilities().getUrl(GetUrlRequest.builder()
-//                                             .bucket(bucketName)
-//                                             .key(key)
-//                                             .build());
+        return s3Client.utilities().getUrl(GetUrlRequest.builder()
+                                             .bucket(bucketName)
+                                             .key(key)
+                                             .build());
     }
 
     private APIGatewayV2HTTPResponse handleError(String requestId, int statusCode, Exception e, String ... messages) {
