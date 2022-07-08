@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
+import javax.inject.Inject;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -44,13 +45,11 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
     private final ObjectMapper objectMapper;
     private final BetTypeBuilderFactory imgBuilderFactory;
-    private final String bucketEnvKey;
-    private final S3Client s3Client;
+    @Inject
+    public S3Client s3Client;
     public BetslipLambda() {
         objectMapper = new ObjectMapper();
         imgBuilderFactory = new BetTypeBuilderFactory();
-        bucketEnvKey = "BETSLIP_BUCKET";
-        s3Client = S3Client.builder().region(Region.US_WEST_2).build();
     }
 
     public APIGatewayV2HTTPResponse handleRequest(final APIGatewayV2HTTPEvent input, final Context context) {
@@ -68,7 +67,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
             String body = objectMapper.writeValueAsString(
                     Map.of(
-                            "url", "https://example.com",
+                            "url", url,
                             "requestId", context.getAwsRequestId()
                     )
             );
@@ -105,7 +104,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
         ImageIO.write(image, "png", os);
         byte[] byteArray = os.toByteArray();
 
-        String bucketName = System.getenv(bucketEnvKey);
+        String bucketName = System.getenv("BETSLIP_BUCKET");
         String key = UUID.randomUUID() + ".png";
 
         s3Client.putObject(
