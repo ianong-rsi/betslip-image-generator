@@ -36,25 +36,30 @@ import software.amazon.lambda.powertools.validation.ValidationException;
 
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
-//    private static final S3Client S3_CLIENT = S3Client.builder().region(Region.US_WEST_2).build();
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final BetTypeBuilderFactory IMAGE_BUILDER_FACTORY = new BetTypeBuilderFactory();
-    private static final String BUCKET_ENV_VAR = "BETSLIP_BUCKET";
+    private final ObjectMapper objectMapper;
+    private final BetTypeBuilderFactory imgBuilderFactory;
+    private final String bucketEnvKey;
+    public BetslipLambda() {
+        objectMapper = new ObjectMapper();
+        imgBuilderFactory = new BetTypeBuilderFactory();
+        bucketEnvKey = "BETSLIP_BUCKET";
+    }
 
+//    private static final S3Client S3_CLIENT = S3Client.builder().region(Region.US_WEST_2).build();
     public APIGatewayV2HTTPResponse handleRequest(final APIGatewayV2HTTPEvent input, final Context context) {
 
         try {
             // Validate request body against json schema
 //            ValidationUtils.validate(input.getBody(), "classpath:/schema/request-schema.json");
-            BetSlipImageGenerationRequest request = OBJECT_MAPPER.readValue(input.getBody(), BetSlipImageGenerationRequest.class);
+            BetSlipImageGenerationRequest request = objectMapper.readValue(input.getBody(), BetSlipImageGenerationRequest.class);
 
-            BufferedImage image = IMAGE_BUILDER_FACTORY
+            BufferedImage image = imgBuilderFactory
                     .getBuilder(request.getPlayType())
                     .buildImage(request);
 
             URL url = uploadImageToS3(image);
 
-            String body = OBJECT_MAPPER.writeValueAsString(
+            String body = objectMapper.writeValueAsString(
                     Map.of(
                             "url", url,
                             "requestId", context.getAwsRequestId()
@@ -69,7 +74,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
         } catch (ValidationException e) {
             try {
-                Map<String, List<Map<String, Object>>> validationMessage = OBJECT_MAPPER.readValue(e.getMessage(), new TypeReference<>() {});
+                Map<String, List<Map<String, Object>>> validationMessage = objectMapper.readValue(e.getMessage(), new TypeReference<>() {});
                 List<Map<String, Object>> validationErrors = validationMessage.get("validationErrors");
                 String[] messages = validationErrors.stream()
                         .map(validationError -> validationError.get("message"))
@@ -93,7 +98,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
         ImageIO.write(image, "png", os);
         byte[] byteArray = os.toByteArray();
 
-        String bucketName = System.getenv(BUCKET_ENV_VAR);
+        String bucketName = System.getenv(bucketEnvKey);
         String key = UUID.randomUUID() + ".png";
 
         return new URL("https://www.facebook.com");
@@ -123,7 +128,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
         String errorMsg;
         try {
-            errorMsg = OBJECT_MAPPER.writeValueAsString(jsonMap);
+            errorMsg = objectMapper.writeValueAsString(jsonMap);
         } catch (JsonProcessingException jsonException) {
             errorMsg = String.join(",", messages);
         }
