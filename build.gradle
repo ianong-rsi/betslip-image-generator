@@ -10,12 +10,12 @@ repositories {
 
 dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
-    implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
+//    implementation enforcedPlatform("${quarkusPlatformGroupId}:quarkus-amazon-services-bom:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-amazon-lambda'
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-awt'
-    implementation 'io.quarkiverse.amazonservices:quarkus-amazon-s3'
-    implementation 'software.amazon.awssdk:url-connection-client'
+//    implementation 'io.quarkiverse.amazonservices:quarkus-amazon-s3'
+//    implementation 'software.amazon.awssdk:url-connection-client'
     implementation 'software.amazon.lambda:powertools-validation:1.12.2'
 
     implementation 'org.apache.httpcomponents:httpcore'
