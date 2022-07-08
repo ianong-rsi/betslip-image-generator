@@ -61,7 +61,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
             String body = objectMapper.writeValueAsString(
                     Map.of(
-                            "url", url,
+                            "url", "https://www.facebook.com",
                             "requestId", context.getAwsRequestId()
                     )
             );
@@ -101,7 +101,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
         String bucketName = System.getenv(bucketEnvKey);
         String key = UUID.randomUUID() + ".png";
 
-        return new URL("https://www.facebook.com");
+        return null;
 
 //        S3_CLIENT.putObject(PutObjectRequest.builder()
 //                             .bucket(bucketName)
