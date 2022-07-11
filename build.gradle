@@ -25,6 +25,7 @@ dependencies {
 //    implementation 'software.amazon.lambda:powertools-validation:1.12.2'
 
     implementation 'org.apache.httpcomponents:httpcore'
+    implementation 'org.jboss.logging:commons-logging-jboss-logging'
 
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
