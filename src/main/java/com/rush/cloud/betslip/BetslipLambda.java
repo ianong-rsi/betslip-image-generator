@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,7 +20,6 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rush.cloud.betslip.builder.BetTypeBuilderFactory;
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
@@ -34,13 +32,15 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
-    private final ObjectMapper objectMapper;
     private final BetTypeBuilderFactory imgBuilderFactory;
+    private final S3Client s3Client;
+    private final ObjectMapper objectMapper;
+
     @Inject
-    public S3Client s3Client;
-    public BetslipLambda() {
-        objectMapper = new ObjectMapper();
-        imgBuilderFactory = new BetTypeBuilderFactory();
+    public BetslipLambda(BetTypeBuilderFactory imgBuilderFactory, S3Client s3Client) {
+        this.imgBuilderFactory = imgBuilderFactory;
+        this.s3Client = s3Client;
+        this.objectMapper = new ObjectMapper();
     }
 
     public APIGatewayV2HTTPResponse handleRequest(final APIGatewayV2HTTPEvent input, final Context context) {

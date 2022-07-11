@@ -1,7 +1,10 @@
 package com.rush.cloud.betslip.builder;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import com.rush.cloud.betslip.common.PlayType;
 
+@ApplicationScoped
 public class BetTypeBuilderFactory {
 
     public BetSlipImageBuilder getBuilder(PlayType playType) {
