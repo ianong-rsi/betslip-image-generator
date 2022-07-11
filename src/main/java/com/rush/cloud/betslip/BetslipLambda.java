@@ -26,20 +26,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rush.cloud.betslip.builder.BetTypeBuilderFactory;
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
 
-//import software.amazon.awssdk.core.sync.RequestBody;
-//import software.amazon.awssdk.regions.Region;
-//import software.amazon.awssdk.services.s3.S3Client;
-//import software.amazon.awssdk.services.s3.model.GetUrlRequest;
-//import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
-//import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.lambda.powertools.validation.ValidationException;
-import software.amazon.lambda.powertools.validation.ValidationUtils;
 
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
@@ -78,19 +69,19 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
                     .withBody(body)
                     .build();
 
-        } catch (ValidationException e) {
-            try {
-                Map<String, List<Map<String, Object>>> validationMessage = objectMapper.readValue(e.getMessage(), new TypeReference<>() {});
-                List<Map<String, Object>> validationErrors = validationMessage.get("validationErrors");
-                String[] messages = validationErrors.stream()
-                        .map(validationError -> validationError.get("message"))
-                        .map(Object::toString)
-                        .toArray(String[]::new);
-                return handleError(context.getAwsRequestId(), HttpStatus.SC_BAD_REQUEST, e, messages);
-            } catch (JsonProcessingException ex) {
-                ex.printStackTrace();
-                return handleError(context.getAwsRequestId(), HttpStatus.SC_BAD_REQUEST, e, e.getMessage());
-            }
+//        } catch (ValidationException e) {
+//            try {
+//                Map<String, List<Map<String, Object>>> validationMessage = objectMapper.readValue(e.getMessage(), new TypeReference<>() {});
+//                List<Map<String, Object>> validationErrors = validationMessage.get("validationErrors");
+//                String[] messages = validationErrors.stream()
+//                        .map(validationError -> validationError.get("message"))
+//                        .map(Object::toString)
+//                        .toArray(String[]::new);
+//                return handleError(context.getAwsRequestId(), HttpStatus.SC_BAD_REQUEST, e, messages);
+//            } catch (JsonProcessingException ex) {
+//                ex.printStackTrace();
+//                return handleError(context.getAwsRequestId(), HttpStatus.SC_BAD_REQUEST, e, e.getMessage());
+//            }
         } catch (Exception e) {
             e.printStackTrace();
             String msg = e.getMessage();
