@@ -2,8 +2,11 @@ package com.rush.cloud.betslip.builder;
 
 import java.awt.image.BufferedImage;
 
+import javax.enterprise.context.ApplicationScoped;
+
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
 
+@ApplicationScoped
 public class ParlayImageBuilder extends BetSlipImageBuilder {
 
     @Override

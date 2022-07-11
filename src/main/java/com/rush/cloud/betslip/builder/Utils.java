@@ -1,9 +1,5 @@
 package com.rush.cloud.betslip.builder;
 
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 import java.util.function.Supplier;
 
 public class Utils {
@@ -17,15 +13,5 @@ public class Utils {
         return returnVal;
     }
 
-    public static int getTextWidth(BufferedImage img,String text, Font font){
-        Graphics2D g2d = img.createGraphics();
-        FontMetrics fontMetrics = g2d.getFontMetrics(font);
-        return fontMetrics.stringWidth(text);
-    }
 
-    public static int getTextHeight(BufferedImage img, String text, Font font){
-        Graphics2D g2d = img.createGraphics();
-        FontMetrics fontMetrics = g2d.getFontMetrics(font);
-        return fontMetrics.getHeight();
-    }
 }

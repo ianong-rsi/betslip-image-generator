@@ -7,7 +7,6 @@ import java.awt.Composite;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.Transparency;
@@ -35,15 +34,21 @@ public class BufferedImageBuilder {
     }
 
     public BufferedImageBuilder addImage(URL imageUrl, int width, int height, int x, int y, int cornerRadius) {
-        return   addImage(imageUrl,width, height,x, y,cornerRadius, 0);
+        return   addImage(imageUrl, width, height, x, y, cornerRadius, 0, false);
     }
 
-    public BufferedImageBuilder addImage(URL imageUrl, int width, int height, int x, int y, int cornerRadius, int radians) {
+    public BufferedImageBuilder addImage(URL imageUrl, int width, int height, int x, int y, int cornerRadius, int radians, boolean resize) {
 
         try {
+            BufferedImage tmp;
             ImageIO.setUseCache(false);
-            BufferedImage tmp = ImageIO.read(imageUrl);
-            BufferedImage image = new BufferedImage(width, height,  BufferedImage.TYPE_INT_ARGB);
+            if (resize) {
+                tmp = resize(ImageIO.read(imageUrl), width, height);
+            } else {
+                tmp = ImageIO.read(imageUrl);
+            }
+
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             Graphics2D newG2d = image.createGraphics();
             newG2d.drawImage(tmp, 0, 0, null);
             newG2d.dispose();
@@ -247,14 +252,17 @@ public class BufferedImageBuilder {
         return this.img;
     }
 
-    //TODO: this method is very slow
-    private BufferedImage resize(BufferedImage img, int newW, int newH) {
-        Image resultingImage = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
-        BufferedImage newImg = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
+    private BufferedImage resize(BufferedImage originalImage, int targetWidth, int targetHeight) {
+        BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics2D = resizedImage.createGraphics();
+        graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING,RenderingHints.VALUE_RENDER_QUALITY);
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
 
-        newImg.getGraphics().drawImage(resultingImage, 0, 0, null);
+        graphics2D.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
+        graphics2D.dispose();
 
-        return newImg;
+        return resizedImage;
     }
 
     private Stroke getStroke(float thickness, boolean isDashed) {

@@ -19,4 +19,12 @@ public class SelectionLayoutConfiguration {
     private float dividerLineThickness;
     private float ovalLineThickness;
     private int bulletDiameter;
+
+    // OddBoosted
+    private int flashWidth;
+    private int flashHeight;
+    private int flashY;
+    private int oddsBoostedBadgeWidth;
+    private int oddsBoostedBadgeHeight;
+    private int oddsBoostedBadgeY;
 }
