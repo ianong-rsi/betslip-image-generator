@@ -26,16 +26,16 @@ public class BetTypeBuilderFactory {
     public BetSlipImageBuilder getBuilder(PlayType playType) {
         switch (playType) {
             case PARLAY:
-                return new ParlayImageBuilder();
+                return parlayImageBuilder;
             case SGP:
             case MULTIPLE_SGP:
-                return new SgpImageBuilder();
+                return sgpImageBuilder;
             case TRIXIE:
             case YANKEE:
             case CANADIAN:
             case HEINZ:
             case SUPER_HEINZ:
-                return new RoundRobinImageBuilder();
+                return roundRobinImageBuilder;
             default:
                 throw new RuntimeException("Invalid bet type");
         }
