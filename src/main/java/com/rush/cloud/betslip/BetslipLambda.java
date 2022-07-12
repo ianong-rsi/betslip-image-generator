@@ -25,6 +25,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rush.cloud.betslip.builder.BetTypeBuilderFactory;
+import com.rush.cloud.betslip.common.PlayType;
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
 
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
             }
 
             BufferedImage image = imgBuilderFactory
-                    .getBuilder(request.getPlayType())
+                    .getBuilder(request.getPlayTypeEnum())
                     .buildImage(request);
 
             URL url = uploadImageToS3(image);

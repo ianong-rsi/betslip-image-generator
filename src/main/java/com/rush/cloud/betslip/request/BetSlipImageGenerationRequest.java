@@ -1,6 +1,8 @@
 package com.rush.cloud.betslip.request;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -9,6 +11,7 @@ import javax.validation.constraints.NotNull;
 import com.rush.cloud.betslip.common.Badge;
 import com.rush.cloud.betslip.common.Platform;
 import com.rush.cloud.betslip.common.PlayType;
+import com.rush.cloud.betslip.request.validation.ValidEnum;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.AllArgsConstructor;
@@ -22,10 +25,12 @@ import lombok.NoArgsConstructor;
 public class BetSlipImageGenerationRequest {
 
     @NotNull
-    private Platform platform;
+    @ValidEnum(enumClass = Platform.class)
+    private String platform;
     @NotNull
-    private PlayType playType;
-    private List<@Valid Badge> badges;
+    @ValidEnum(enumClass = PlayType.class)
+    private String playType;
+    private List<@ValidEnum(enumClass = Badge.class) String> badges;
     @NotNull
     @Valid
     private HeaderContent header;
@@ -79,5 +84,21 @@ public class BetSlipImageGenerationRequest {
         private String gamblingProblemLine2;
         @NotEmpty
         private String betDateTime;
+    }
+
+    public PlayType getPlayTypeEnum() {
+        return PlayType.valueOf(this.playType);
+    }
+
+    public Platform getPlatformEnum() {
+        return Platform.valueOf(this.platform);
+    }
+
+    public List<Badge> getBadgesEnum() {
+        return Optional.ofNullable(this.badges)
+                .map(badges -> badges.stream()
+                        .map(Badge::valueOf)
+                        .collect(Collectors.toList()))
+                .orElse(null);
     }
 }

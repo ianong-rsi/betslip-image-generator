@@ -41,7 +41,7 @@ public abstract class BetSlipImageBuilder {
         BufferedImage body = buildBody(request, getWidth(), getBodyHeight());
         BufferedImage footer = buildFooter(request, getWidth(), getFooterHeight());
 
-        Color bgColor = Platform.SUGARHOUSE.equals(request.getPlatform())
+        Color bgColor = Platform.SUGARHOUSE.equals(Platform.valueOf(request.getPlatform()))
                         ? SystemColor.SUGAR_HOUSE_BG
                         : SystemColor.BET_RIVERS_BG;
 
@@ -87,7 +87,7 @@ public abstract class BetSlipImageBuilder {
 
         int halfHeaderHeight = height / 2;
         BufferedImage logoSectionHeader = buildHeaderLogoSection(
-                width, halfHeaderHeight, request.getPlatform(), request.getHeader().getMyBetsText());
+                width, halfHeaderHeight, request.getPlatformEnum(), request.getHeader().getMyBetsText());
 
         BufferedImage titleSectionHeader = buildHeaderTitleSection(
                 width, halfHeaderHeight, request.getHeader().getBetTitle(), request.getHeader().getTotalOdds());
@@ -107,7 +107,7 @@ public abstract class BetSlipImageBuilder {
 
         int halfHeaderHeight = height / 2;
         BufferedImage logoSectionHeader = buildHeaderLogoSection(
-                width, halfHeaderHeight, request.getPlatform(), request.getHeader().getMyBetsText());
+                width, halfHeaderHeight, request.getPlatformEnum(), request.getHeader().getMyBetsText());
 
         BufferedImage titleSectionHeader = buildHeaderTitleSection(
                 width, halfHeaderHeight, request.getHeader().getBetTitle(), request.getHeader().getTotalOdds(),
@@ -325,7 +325,7 @@ public abstract class BetSlipImageBuilder {
                         .addText(content.getEventName(), XAlignment.LEFT, textLeftPadding, YAlignment.BOTTOM, bottomPadding, SystemFont.DM_SANS_REGULAR.deriveFont(configuration.getEventNameFontSize()), SystemColor.BET_RIVERS_WHITE_ALPHA_70)
                         .addText(content.getEventStartDate(), XAlignment.RIGHT, textRightPadding, YAlignment.BOTTOM, bottomPadding, SystemFont.DM_SANS_REGULAR.deriveFont(configuration.getEventStartDateFontSize()), SystemColor.BET_RIVERS_WHITE_ALPHA_70);
 
-                if (!Objects.isNull(request.getBadges()) && request.getBadges().contains(Badge.ODDS_BOOST) && content.getOddsBoosted() != null) {
+                if (request.getBadgesEnum() != null && request.getBadgesEnum().contains(Badge.ODDS_BOOST) && content.getOddsBoosted() != null) {
 
                     int oddsBoostedWidth = getTextWidth(content.getOddsBoosted(), SystemFont.DM_SANS_BOLD.deriveFont(configuration.getOddsFontSize()));
                     int oddsWidth = getTextWidth(content.getOdds(), SystemFont.DM_SANS_BOLD.deriveFont(configuration.getOddsFontSize()));
@@ -389,7 +389,7 @@ public abstract class BetSlipImageBuilder {
                 .addText(footer.getTotalWagerText(), XAlignment.LEFT, 57, YAlignment.TOP, 51, SystemFont.DM_SANS_BOLD.deriveFont(25f), SystemColor.BET_RIVERS_YELLOW_ALPHA_70)
                 .addText(footer.getTotalWagerAmount(), XAlignment.RIGHT, 16, YAlignment.TOP, 86, SystemFont.DM_SANS_BOLD.deriveFont(32f), SystemColor.BET_RIVERS_YELLOW);
 
-        if (!Objects.isNull(request.getBadges()) && request.getBadges().contains(Badge.FREE_BET)) {
+        if (request.getBadgesEnum() != null && request.getBadgesEnum().contains(Badge.FREE_BET)) {
             totalWager.addImage(getClass().getResource("/images/badges/badge-freebet.png"), 196, 79, (width / 5) - 188, 110);
         }
 
@@ -404,7 +404,7 @@ public abstract class BetSlipImageBuilder {
                 .addText(footer.getGamblingProblemLine2(), XAlignment.RIGHT, 58, YAlignment.TOP, 79, SystemFont.DM_SANS_MEDIUM.deriveFont(21f), Color.white)
                 .addText(footer.getBetDateTime(), XAlignment.RIGHT, 58, YAlignment.TOP, 126, SystemFont.DM_SANS_MEDIUM.deriveFont(21f), SystemColor.BET_RIVERS_WHITE_ALPHA_70);
 
-        if (!Objects.isNull(request.getBadges()) && request.getBadges().contains(Badge.PROFIT_BOOST)) {
+        if (request.getBadgesEnum() != null && request.getBadgesEnum().contains(Badge.PROFIT_BOOST)) {
             potentialPayout.addImage(getClass().getResource("/images/badges/badge-profitboost.png"), 314, 97, 235, 118);
         }
 
