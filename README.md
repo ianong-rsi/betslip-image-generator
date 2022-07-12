@@ -1,8 +1,17 @@
-# betslip-image-generator Project
+# Betslip Image Generator
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+
+This is an AWS Lambda project that generates a betslip image that is shareable to various social media platforms.
+
+## Tech Stack
+
+- Language - `Java`
+- Libraries - `Java AWT`, `AWS SDK`
+- Framework - `Quarkus`
+- CI/CD - `Github Actions`
 
 ## Running the application in dev mode
 
@@ -10,8 +19,6 @@ You can run your application in dev mode that enables live coding using:
 ```shell script
 ./gradlew quarkusDev
 ```
-
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 
 ## Packaging and running the application
 
@@ -46,18 +53,3 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 You can then execute your native executable with: `./build/betslip-image-generator-1.0.0-SNAPSHOT-runner`
 
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/gradle-tooling.
-
-## Related Guides
-
-- AWS Lambda ([guide](https://quarkus.io/guides/amazon-lambda)): Write AWS Lambda functions
-
-## Provided Code
-
-### Amazon Lambda Integration example
-
-This example contains a Quarkus Greeting Lambda ready for Amazon.
-
-[Related guide section...](https://quarkus.io/guides/amazon-lambda)
-
-> :warning: **INCOMPATIBLE WITH DEV MODE**: Amazon Lambda Binding is not compatible with dev mode yet!
-
