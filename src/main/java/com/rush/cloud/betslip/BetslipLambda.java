@@ -6,10 +6,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -24,31 +27,40 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rush.cloud.betslip.builder.BetTypeBuilderFactory;
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
 
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+@Slf4j
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
     private final BetTypeBuilderFactory imgBuilderFactory;
     private final S3Client s3Client;
+    private final Validator validator;
     private final ObjectMapper objectMapper;
 
     @Inject
-    public BetslipLambda(BetTypeBuilderFactory imgBuilderFactory, S3Client s3Client) {
+    public BetslipLambda(BetTypeBuilderFactory imgBuilderFactory, S3Client s3Client, Validator validator) {
         this.imgBuilderFactory = imgBuilderFactory;
         this.s3Client = s3Client;
+        this.validator = validator;
         this.objectMapper = new ObjectMapper();
     }
 
     public APIGatewayV2HTTPResponse handleRequest(final APIGatewayV2HTTPEvent input, final Context context) {
 
         try {
-            // Validate request body against json schema
-            //ValidationUtils.validate(input.getBody(), "classpath:/schema/request-schema.json");
             BetSlipImageGenerationRequest request = objectMapper.readValue(input.getBody(), BetSlipImageGenerationRequest.class);
+            Set<ConstraintViolation<BetSlipImageGenerationRequest>> constraints = validator.validate(request);
+            if (!constraints.isEmpty()) {
+                String[] messages = constraints.stream()
+                        .map(c -> c.getPropertyPath() + " " + c.getMessage())
+                        .toArray(String[]::new);
+                return handleError(context.getAwsRequestId(), HttpStatus.SC_BAD_REQUEST, messages);
+            }
 
             BufferedImage image = imgBuilderFactory
                     .getBuilder(request.getPlayType())
@@ -56,12 +68,10 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
 
             URL url = uploadImageToS3(image);
 
-            String body = objectMapper.writeValueAsString(
-                    Map.of(
-                            "url", url,
-                            "requestId", context.getAwsRequestId()
-                    )
-            );
+            String body = objectMapper.writeValueAsString(Map.of(
+                    "url", url,
+                    "requestId", context.getAwsRequestId()
+            ));
 
             return APIGatewayV2HTTPResponse.builder()
                     .withHeaders(Map.of(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType()))
@@ -69,23 +79,9 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
                     .withBody(body)
                     .build();
 
-//        } catch (ValidationException e) {
-//            try {
-//                Map<String, List<Map<String, Object>>> validationMessage = objectMapper.readValue(e.getMessage(), new TypeReference<>() {});
-//                List<Map<String, Object>> validationErrors = validationMessage.get("validationErrors");
-//                String[] messages = validationErrors.stream()
-//                        .map(validationError -> validationError.get("message"))
-//                        .map(Object::toString)
-//                        .toArray(String[]::new);
-//                return handleError(context.getAwsRequestId(), HttpStatus.SC_BAD_REQUEST, e, messages);
-//            } catch (JsonProcessingException ex) {
-//                ex.printStackTrace();
-//                return handleError(context.getAwsRequestId(), HttpStatus.SC_BAD_REQUEST, e, e.getMessage());
-//            }
         } catch (Exception e) {
-            e.printStackTrace();
-            String msg = e.getMessage();
-            return handleError(context.getAwsRequestId(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e, msg);
+            log.error("Error occurred when generating betslip image", e);
+            return handleError(context.getAwsRequestId(), HttpStatus.SC_INTERNAL_SERVER_ERROR, "Error occurred when generating betslip image");
         }
     }
 
@@ -114,8 +110,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
                                              .build());
     }
 
-    private APIGatewayV2HTTPResponse handleError(String requestId, int statusCode, Exception e, String ... messages) {
-        e.printStackTrace();
+    private APIGatewayV2HTTPResponse handleError(String requestId, int statusCode, String ... messages) {
 
         Map<String, Object> jsonMap = new HashMap<>();
         jsonMap.put("requestId", requestId);
