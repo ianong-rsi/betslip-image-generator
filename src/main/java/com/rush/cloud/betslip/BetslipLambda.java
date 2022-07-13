@@ -36,7 +36,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Slf4j
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
@@ -87,7 +86,7 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
                             .withStatusCode(HttpStatus.SC_OK)
                             .withBody(jsonBody)
                             .build())
-                    .orElseThrow(() -> new RuntimeException("Error occurred when uploading image to S3"));
+                    .orElseThrow(() -> new RuntimeException("Unable to upload image to S3"));
 
         } catch (Exception e) {
             log.error("Error occurred when generating betslip image", e);
