@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,19 +26,22 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rush.cloud.betslip.builder.BetTypeBuilderFactory;
-import com.rush.cloud.betslip.common.PlayType;
 import com.rush.cloud.betslip.request.BetSlipImageGenerationRequest;
 
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 @Slf4j
 public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
+    private static final String BUCKET_ENV_VAR = "BETSLIP_BUCKET";
     private final BetTypeBuilderFactory imgBuilderFactory;
     private final S3Client s3Client;
     private final Validator validator;
@@ -67,18 +71,23 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
                     .getBuilder(request.getPlayTypeEnum())
                     .buildImage(request);
 
-            URL url = uploadImageToS3(image);
-
-            String body = objectMapper.writeValueAsString(Map.of(
-                    "url", url,
-                    "requestId", context.getAwsRequestId()
-            ));
-
-            return APIGatewayV2HTTPResponse.builder()
-                    .withHeaders(Map.of(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType()))
-                    .withStatusCode(HttpStatus.SC_OK)
-                    .withBody(body)
-                    .build();
+            return uploadImageToS3(image)
+                    .map(url -> {
+                        try {
+                             return objectMapper.writeValueAsString(Map.of(
+                                     "url", url,
+                                     "requestId", context.getAwsRequestId()
+                             ));
+                         } catch (JsonProcessingException e) {
+                             throw new RuntimeException(e);
+                         }
+                     })
+                    .map(jsonBody -> APIGatewayV2HTTPResponse.builder()
+                            .withHeaders(Map.of(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType()))
+                            .withStatusCode(HttpStatus.SC_OK)
+                            .withBody(jsonBody)
+                            .build())
+                    .orElseThrow(() -> new RuntimeException("Error occurred when uploading image to S3"));
 
         } catch (Exception e) {
             log.error("Error occurred when generating betslip image", e);
@@ -86,29 +95,33 @@ public class BetslipLambda implements RequestHandler<APIGatewayV2HTTPEvent, APIG
         }
     }
 
-    private URL uploadImageToS3(BufferedImage image) throws IOException {
+    private Optional<URL> uploadImageToS3(BufferedImage image) throws IOException {
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ImageIO.write(image, "png", os);
         byte[] byteArray = os.toByteArray();
 
-        String bucketName = System.getenv("BETSLIP_BUCKET");
+        String bucketName = System.getenv(BUCKET_ENV_VAR);
         String key = UUID.randomUUID() + ".png";
 
-        s3Client.putObject(
-                PutObjectRequest.builder()
-                             .bucket(bucketName)
-                             .key(key)
-                             .contentLength((long) byteArray.length)
-                             .contentType(ContentType.IMAGE_PNG.getMimeType())
-                             .acl(ObjectCannedACL.PUBLIC_READ)
-                             .build(),
-                RequestBody.fromBytes(byteArray));
-
-        return s3Client.utilities().getUrl(GetUrlRequest.builder()
-                                             .bucket(bucketName)
-                                             .key(key)
-                                             .build());
+        return Optional.ofNullable(
+                s3Client.putObject(
+                        PutObjectRequest.builder()
+                                .bucket(bucketName)
+                                .key(key)
+                                .contentLength((long) byteArray.length)
+                                .contentType(ContentType.IMAGE_PNG.getMimeType())
+                                .acl(ObjectCannedACL.PUBLIC_READ)
+                                .build(),
+                        RequestBody.fromBytes(byteArray)
+                ))
+                .map(SdkResponse::sdkHttpResponse)
+                .filter(SdkHttpResponse::isSuccessful)
+                .map(sdkHttpResponse -> s3Client.utilities().getUrl(
+                        GetUrlRequest.builder()
+                                .bucket(bucketName)
+                                .key(key)
+                                .build()));
     }
 
     private APIGatewayV2HTTPResponse handleError(String requestId, int statusCode, String ... messages) {
